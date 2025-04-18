@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Система бронирования | Город-курорт</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/index.css}">
+</head>
+<body>
+<!-- Навбар с кнопками -->
+<nav class="navbar navbar-expand navbar-light fixed-top">
+    <div class="container-fluid">
+        <ul class="navbar-nav me-auto">
+
+            <li class="nav-item">
+                <button class="nav-link profile-btn" onclick="toggleProfile()">Об авторе</button>
+            </li>
+
+            <!-- Новая кнопка "Статистика" для администратора-->
+            <li class="nav-item" th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+                <button class="nav-link" data-bs-toggle="modal" data-bs-target="#statsModal">
+                    Статистика
+                </button>
+            </li>
+
+            <!-- Кнопка добавления только для администратора -->
+            <li class="nav-item" th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+                <a href="/new" class="nav-link">Добавить бронирование</a>
+            </li>
+        </ul>
+
+        <div class="d-flex">
+            <!-- Кнопка "Управление пользователями" (только для ADMIN) -->
+            <ul class="navbar-nav me-auto" th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+                <li class="nav-item">
+                    <a th:href="@{/users}" class="btn btn-outline-secondary me-2">Пользователи</a>
+                </li>
+            </ul>
+
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a th:href="@{/bookings/history}" class="btn btn-outline-secondary me-2">История</a>
+                </li>
+            </ul>
+
+            <!-- Кнопка "Выход" -->
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <form th:action="@{/logout}" method="post">
+                        <input type="submit" class="btn btn-outline-danger" value="Выход">
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!--<div th:each="acc : ${accommodations}">-->
+<!--    <h3 th:text="${acc.name}"></h3>-->
+<!--    <p>Тип: <span th:text="${acc.type}"></span></p>-->
+<!--    <p>Местоположение: <span th:text="${acc.location}"></span></p>-->
+<!--    <p>Цена за ночь: <span th:text="${acc.basePrice}"></span></p>-->
+
+<!--    <form th:action="@{/bookings}" method="post">-->
+<!--        <input type="hidden" name="accommodationId" th:value="${acc.id}">-->
+<!--        <input type="date" name="startDate" required>-->
+<!--        <input type="date" name="endDate" required>-->
+<!--        <button type="submit">Забронировать</button>-->
+<!--    </form>-->
+<!--</div>-->
+
+<!-- Overlay (фон затемнения) -->
+<div class="overlay" id="profileOverlay" onclick="toggleProfile()"></div>
+
+<!-- Шторка профиля -->
+<div class="profile-sidebar" id="profileSidebar">
+    <button class="close-btn" onclick="toggleProfile()">×</button>
+    <div class="profile-content">
+        <h3>Мой профиль</h3>
+        <div class="profile-photo">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSmc8yW_lkwxM3JAmM_ol3lWHifYB_2X_bEnA&s">
+        </div>
+        <p><strong>Имя:</strong> Диева Варвара</p>
+        <p><strong>Email:</strong> 233551@mail.ru</p>
+        <p><strong>Telegram:</strong> @dievavar</p>
+<!--        <p><strong>Телефон:</strong> +7 (908) 870-47-75</p>-->
+        <p><strong>Образование:</strong> Финансовый университет, программная инженерия</p>
+    </div>
+</div>
+
+<!-- Основное содержимое -->
+<div class="main-content">
+    <h1 class="mb-4">Система бронирования в городе-курорте</h1>
+
+    <div class="search-form">
+        <h4 class="mb-3">Поиск бронирования</h4>
+        <form th:action="@{/}" class="d-flex">
+            <input type="text" name="keyword" id="keyword" class="form-control me-2"
+                   th:value="${keyword}" placeholder="Введите критерии поиска..." required/>
+            <input type="submit" class="btn btn-primary" value="Поиск"/>
+            <input type="button" class="btn btn-outline-secondary ms-2" value="Очистить" id="btnClear" onclick="clearSearch()"/>
+        </form>
+    </div>
+
+
+    <!-- Блок с количеством бронирований -->
+    <div class="booking-count mb-3">
+        <p class="text-muted" id="bookingCount">Загрузка количества бронирований...</p>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Название</th>
+                <th scope="col">Тип</th>
+                <th scope="col">Город</th>
+                <th scope="col">Стоимость(1 сутки)</th>
+                <th scope="col">Вместимость</th>
+                <th scope="col">Описание</th>
+<!--                <th scope="col">Заезд</th>-->
+<!--                <th scope="col">Выезд</th>-->
+                <!-- Столбец действий только для администратора -->
+                <th scope="col">Действия</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="accommodation: ${accommodation}">
+                <td th:text="${accommodation.id}"></td>
+                <td th:text="${accommodation.name}"></td>
+                <td th:text="${accommodation.type}"></td>
+                <td th:text="${accommodation.location}"></td>
+                <td th:text="${'₽' + accommodation.basePrice}"></td>
+                <td th:text="${accommodation.capacity}"></td>
+                <td th:text="${accommodation.description}"></td>
+<!--                <td th:text="${#temporals.format(booking.start_date, 'dd.MM.yyyy')}"></td>-->
+<!--                <td th:text="${#temporals.format(booking.end_date, 'dd.MM.yyyy')}"></td>-->
+                <td>
+                    <!-- Кнопки для администратора -->
+                    <span th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+        <a th:href="@{'/edit/' + ${accommodation.id}}" class="btn btn-sm btn-outline-primary me-1">Редактировать</a>
+        <a th:href="@{'/delete/' + ${accommodation.id}}" class="btn btn-sm btn-outline-danger me-1">Удалить</a>
+    </span>
+
+                    <!-- Кнопка для пользователей th:unless="${#authorization.expression('hasRole(''ADMIN'')')}"-->
+                    <button class="btn btn-sm btn-outline-success"
+                            data-bs-toggle="modal"
+                            data-bs-target="#bookingModal"
+                            th:attr="data-accommodation-id=${accommodation.id},
+                    data-accommodation-name=${accommodation.name},
+                    data-base-price=${accommodation.basePrice}">
+                        Забронировать
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<!-- Модальное окно бронирования -->
+<div class="modal fade" id="bookingModal" tabindex="-1" aria-labelledby="bookingModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bookingModalLabel">Бронирование размещения</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="bookingForm" th:action="@{/bookings/create}" method="post">
+                <div class="modal-body">
+                    <input type="hidden" id="accommodationId" name="accommodationId">
+                    <input type="hidden" id="userId" name="userId" th:value="${@userService.getCurrentUserId()}">
+
+                    <div class="mb-3">
+                        <label class="form-label">Размещение</label>
+                        <input type="text" class="form-control" id="accommodationName" readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="startDate" class="form-label">Дата заезда</label>
+                        <input type="date" class="form-control" id="startDate" name="startDate" required>
+                        <small class="text-danger" id="startDateError"></small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="endDate" class="form-label">Дата выезда</label>
+                        <input type="date" class="form-control" id="endDate" name="endDate" required>
+                        <small class="text-danger" id="endDateError"></small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="guestsCount" class="form-label">Количество гостей</label>
+                        <input type="number" class="form-control" id="guestsCount" name="guestsCount" min="1" max="10" value="1" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Подтвердить бронь</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно статистики -->
+<div class="modal fade" id="statsModal" tabindex="-1" aria-labelledby="statsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="statsModalLabel">Статистика бронирований</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Контейнер для графика -->
+                <canvas id="bookingsChart" width="800" height="400"></canvas>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function clearSearch() {
+        window.location = "[[@{/}]]";
+    }
+
+    function toggleProfile() {
+        const sidebar = document.getElementById('profileSidebar');
+        const overlay = document.getElementById('profileOverlay');
+
+        sidebar.classList.toggle('show');
+        overlay.classList.toggle('show');
+
+        // Блокировка прокрутки тела страницы при открытой шторке
+        document.body.style.overflow = sidebar.classList.contains('show') ? 'hidden' : '';
+    }
+
+     // Функция для отображения количества бронирований
+    function updateBookingCount() {
+        const rows = document.querySelectorAll('table tbody tr');
+        const countElement = document.getElementById('bookingCount');
+
+        // Фильтруем только видимые строки (на случай, если есть поиск или фильтрация)
+        const visibleRows = Array.from(rows).filter(row => row.style.display !== 'none');
+
+        const count = visibleRows.length;
+        countElement.textContent = `Найдено бронирований: ${count}`;
+    }
+
+    // Вызываем функцию при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        updateBookingCount();
+
+        // Если есть форма поиска, обновляем счетчик при её отправке
+        const searchForm = document.querySelector('form[th\\:action="@{/}"]');
+        if (searchForm) {
+            searchForm.addEventListener('submit', function() {
+                // Добавляем небольшую задержку, чтобы таблица успела обновиться
+                setTimeout(updateBookingCount, 100);
+            });
+        }
+    })
+
+document.getElementById('bookingModal').addEventListener('show.bs.modal', function(event) {
+    const button = event.relatedTarget;
+    document.getElementById('accommodationId').value = button.getAttribute('data-accommodation-id');
+    document.getElementById('accommodationName').value = button.getAttribute('data-accommodation-name');
+
+    // Устанавливаем минимальную дату (сегодня)
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('startDate').min = today;
+    document.getElementById('startDate').value = today;
+
+    // Добавляем валидацию даты отъезда
+    document.getElementById('startDate').addEventListener('change', function() {
+        const startDate = new Date(this.value);
+        const endDateInput = document.getElementById('endDate');
+
+        // Минимальная дата отъезда = дата заезда + 1 день
+        const minEndDate = new Date(startDate);
+        minEndDate.setDate(minEndDate.getDate() + 1);
+
+        endDateInput.min = minEndDate.toISOString().split('T')[0];
+
+        // Если текущая дата отъезда раньше минимальной, сбрасываем её
+        if (new Date(endDateInput.value) < minEndDate) {
+            endDateInput.value = '';
+        }
+    });
+});
+
+// Проверка перед отправкой формы
+document.querySelector('#bookingModal form').addEventListener('submit', function(event) {
+    const startDate = new Date(document.getElementById('startDate').value);
+    const endDate = new Date(document.getElementById('endDate').value);
+
+    if (endDate <= startDate) {
+        event.preventDefault(); // Отменяем отправку
+        alert('Дата отъезда должна быть позже даты заезда!');
+        return false;
+    }
+    return true;
+});
+
+    document.addEventListener('DOMContentLoaded', function() {
+    const statsModal = document.getElementById('statsModal');
+
+    // При открытии модального окна загружаем статистику
+    statsModal.addEventListener('show.bs.modal', function() {
+        fetch('/bookings/stats')  // Эндпоинт для статистики
+            .then(response => response.json())
+            .then(data => {
+                renderChart(data);
+            })
+            .catch(error => {
+                console.error('Ошибка загрузки статистики:', error);
+            });
+    });
+
+    // Отрисовка гистограммы
+    function renderChart(data) {
+        const ctx = document.getElementById('bookingsChart').getContext('2d');
+
+        // Удаляем старый график, если он есть
+        if (window.bookingChart) {
+            window.bookingChart.destroy();
+        }
+
+        // Создаём новый график
+        window.bookingChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.dates,  // Даты заезда (ось X)
+                datasets: [{
+                    label: 'Количество бронирований',
+                    data: data.counts,  // Число бронирований (ось Y)
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Количество бронирований'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Дата заезда'
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</body>
+</html>

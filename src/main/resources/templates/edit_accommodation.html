@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Редактирование бронирования | Город-курорт</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/edit_booking.css}">
+</head>
+<body>
+<!-- Кнопка "Назад" -->
+<a th:href="@{/}" class="back-btn">
+    <button type="button" class="btn btn-outline-secondary">Назад</button>
+</a>
+
+<div class="edit-container">
+    <h1>Редактирование бронирования</h1>
+
+    <form class="edit-form" action="#" th:action="@{/save}" th:object="${accommodation}" method="post">
+        <input type="hidden" name="id" th:value="${accommodation.id}">
+
+        <div class="form-group">
+            <label for="name">Название:</label>
+            <input type="text" class="form-control" id="name" th:field="*{name}" >
+        </div>
+
+        <div class="form-group">
+            <label for="type">Тип:</label>
+            <input type="text" class="form-control" id="type" th:field="*{type}" >
+        </div>
+
+        <div class="form-group">
+            <label for="location">Город:</label>
+            <input type="text" class="form-control" id="location" th:field="*{location}" >
+        </div>
+
+        <div class="form-group">
+            <label for="basePrice">Цена (₽):</label>
+            <input type="number" class="form-control" id="basePrice" th:field="*{basePrice}" name="basePrice" min="0" step="1" >
+        </div>
+
+        <div class="form-group">
+            <label for="capacity">Вместимость:</label>
+            <input type="number" class="form-control" id="capacity" th:field="*{capacity}" name="capacity" min="0" step="1" >
+        </div>
+
+
+        <div class="form-group">
+            <label for="description">Описание:</label>
+            <input type="text" class="form-control" id="description" th:field="*{description}" >
+        </div>
+
+<!--        <div class="form-group">-->
+<!--            <label for="start_date">Дата прибытия:</label>-->
+<!--            <input type="date" class="form-control" id="start_date" th:field="*{start_date}"-->
+<!--                   th:value="${#temporals.format(booking.start_date, 'yyyy-MM-dd')}" required>-->
+<!--        </div>-->
+
+<!--        <div class="form-group">-->
+<!--            <label for="end_date">Дата отправления:</label>-->
+<!--            <input type="date" class="form-control" id="end_date" th:field="*{end_date}"-->
+<!--                   th:value="${#temporals.format(booking.end_date, 'yyyy-MM-dd')}" required>-->
+<!--        </div>-->
+
+        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+    </form>
+</div>
+
+<script>
+    function validateDates() {
+        const startDate = new Date(document.getElementById('start_date').value);
+        const endDate = new Date(document.getElementById('end_date').value);
+
+        if (endDate <= startDate) {
+            alert("Дата отъезда должна быть позже даты прибытия");
+            return false;
+        }
+        return true;
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
