@@ -138,12 +138,11 @@
                 <td th:text="${accommodation.description}"></td>
 <!--                <td th:text="${#temporals.format(booking.start_date, 'dd.MM.yyyy')}"></td>-->
 <!--                <td th:text="${#temporals.format(booking.end_date, 'dd.MM.yyyy')}"></td>-->
-                <td>
-                    <!-- Кнопки для администратора -->
+                <td>-->
                     <span th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
-        <a th:href="@{'/edit/' + ${accommodation.id}}" class="btn btn-sm btn-outline-primary me-1">Редактировать</a>
-        <a th:href="@{'/delete/' + ${accommodation.id}}" class="btn btn-sm btn-outline-danger me-1">Удалить</a>
-    </span>
+                        <a th:href="@{'/edit/' + ${accommodation.id}}" class="btn btn-sm btn-outline-primary me-1">Редактировать</a>
+                        <a th:href="@{'/delete/' + ${accommodation.id}}" class="btn btn-sm btn-outline-danger me-1">Удалить</a>
+                    </span>
 
                     <!-- Кнопка для пользователей th:unless="${#authorization.expression('hasRole(''ADMIN'')')}"-->
                     <button class="btn btn-sm btn-outline-success"

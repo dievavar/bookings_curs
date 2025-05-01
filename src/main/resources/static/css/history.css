@@ -129,6 +129,23 @@
             color: #ef4444;
         }
 
+        .badge {
+            padding: 0.25em 0.4em;
+            font-size: 0.875em;
+            font-weight: 500;
+            border-radius: 0.25rem;
+        }
+
+        .bg-success {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .bg-danger {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+
         @media (max-width: 768px) {
             .main-container {
                 margin: 1rem;
@@ -141,3 +158,4 @@
                 gap: 1rem;
             }
         }
+

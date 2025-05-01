@@ -22,43 +22,54 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 import javax.sql.DataSource;
 
 
 @Configuration
 @EnableWebSecurity
-//@EnableMethodSecurity
 public class WebSecurityConfig {
-
-//    @Autowired
-//    private UserService userService;
-//
-//    @Autowired
-//    protected void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-//        auth.userDetailsService(userService).passwordEncoder(passwordEncoder());
-//    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http.csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth.requestMatchers("/login", "/registration", "/css/*", "/static/**", "/bookings/**", "/").permitAll() //доступно всем
-                        .requestMatchers("/**").authenticated()//для остальных контрольных точек требуется аутентификация
-                        .requestMatchers("/users", "/users/**").hasRole("ADMIN")) //// Страница управления пользователями
+        return http
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                )
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/", "/login", "/registration", "/css/**").permitAll()
+
+                        .requestMatchers("/new", "/save", "/edit/**", "/delete/**").hasRole("ADMIN")
+                        .requestMatchers("/bookings/create", "/bookings/history").authenticated()
+                        .requestMatchers("/bookings/*/cancel").authenticated()
+                        .requestMatchers("/bookings/*/restore").hasRole("ADMIN")
+
+                        .requestMatchers("/stats").hasRole("ADMIN")
+
+                        .requestMatchers("/users", "/users/**").hasRole("ADMIN")
+
+                        .anyRequest().authenticated()
+                )
                 .formLogin(form -> form
-                        .loginPage("/login") // Указываем страницу логина
-                        .defaultSuccessUrl("/", true) // Перенаправляем на главную страницу после успешного входа
-                        .permitAll() //логирование разрешаем всем желающим
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/", true)
+                        .permitAll()
+                )
+                .logout(logout -> logout
+                        .logoutSuccessUrl("/login?logout")
+                        .permitAll()
                 )
                 .build();
     }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 }
 
-//    @Bean
+//    @Bean%
 //   public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
 //    return new UserService();
 //    }

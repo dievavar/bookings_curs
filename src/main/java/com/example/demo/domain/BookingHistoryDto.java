@@ -10,6 +10,7 @@ public interface BookingHistoryDto {
     String getAccommodationName();
     String getAccommodationType();
     String getAccommodationLocation();
+    BookingStatus getStatus();
     LocalDate getStartDate();
     LocalDate getEndDate();
     Integer getGuestsCount();

@@ -34,11 +34,6 @@ public class MyUser {
         @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
         private List<Booking> bookings;
 
-//    @Enumerated(EnumType.STRING)
-//    private Role role;
-//
-//    public enum Role { USER, ADMIN }
-
     public Long getId() {
         return id;
     }

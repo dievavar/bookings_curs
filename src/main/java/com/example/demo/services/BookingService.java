@@ -10,8 +10,10 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.example.demo.domain.BookingStatus;
 import com.example.demo.domain.MyUser;
 import com.example.demo.repos.AccommodationRepository;
 import com.example.demo.repos.BookingRepository;
@@ -31,12 +33,6 @@ public class BookingService {
     @Autowired
     private AccommodationRepository accommodationRepository;
 
-//    public List<Booking> listAll(String keyword){
-//        if (keyword != null){
-//            return repo.search(keyword);
-//        }
-//        return repo.findAll();
-//    }
 
     public void save(Booking booking){repo.save(booking);}
 
@@ -47,10 +43,6 @@ public class BookingService {
     public void delete(Long id){
         repo.deleteById(id);
     }
-
-
-
-
 
     public Booking createBooking(Long accommodationId, LocalDate startDate,
                                  LocalDate endDate, MyUser user) {
@@ -66,7 +58,8 @@ public class BookingService {
         booking.setStartDate(startDate);
         booking.setEndDate(endDate);
         booking.setTotalPrice(totalPrice);
-//        booking.setStatus(Booking.BookingStatus.PENDING);
+        booking.setStatus(BookingStatus.ACTIVE);
+
 
         return repo.save(booking);
     }
@@ -94,31 +87,49 @@ public class BookingService {
                         Collectors.counting()
                 ));
     }
-    @Transactional
-    public void cancelBooking(Long id, String username, String adminNote) {
-        Booking booking = repo.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Бронирование не найдено"));
 
-        // Проверка прав (пользователь может отменять только свои бронирования)
-        if (!booking.getUser().getEmail().equals(username) && !isAdmin()) {
-            throw new AccessDeniedException("Нет прав для отмены этого бронирования");
-        }
-
-        booking.setStatus(Booking.BookingStatus.CANCELLED);
-        if (adminNote != null) {
-            booking.setAdminNote(adminNote);
-        }
-        repo.save(booking);
+    // Метод для поиска бронирования по ID
+    public Optional<Booking> findBookingById(Long bookingId) {
+        return repo.findById(bookingId);
     }
 
     @Transactional
-    public void restoreBooking(Long id) {
-        Booking booking = repo.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Бронирование не найдено"));
+    public void changeStatus(Long bookingId, BookingStatus newStatus) {
+        Optional<Booking> bookingOptional = repo.findById(bookingId);
 
-        booking.setStatus(Booking.BookingStatus.ACTIVE);
-        repo.save(booking);
+        if (bookingOptional.isPresent()) {
+            Booking booking = bookingOptional.get();
+            System.out.println("Changing status for booking ID " + bookingId + " to " + newStatus); // Логируем изменение статуса
+            booking.setStatus(newStatus);
+            repo.save(booking);
+        } else {
+            throw new EntityNotFoundException("Бронирование не найдено");
+        }
     }
 
+    public boolean cancelBooking(Long bookingId) {
+        Optional<Booking> bookingOptional = repo.findById(bookingId);
+        if (bookingOptional.isPresent()) {
+            Booking booking = bookingOptional.get();
+            if (booking.getStatus() == BookingStatus.ACTIVE) {
+                booking.setStatus(BookingStatus.CANCELLED);
+                repo.save(booking);
+                return true;
+            }
+        }
+        return false;
+    }
 
+    public boolean restoreBooking(Long bookingId) {
+        Optional<Booking> bookingOptional = repo.findById(bookingId);
+        if (bookingOptional.isPresent()) {
+            Booking booking = bookingOptional.get();
+            if (booking.getStatus() == BookingStatus.CANCELLED) {
+                booking.setStatus(BookingStatus.ACTIVE);
+                repo.save(booking);
+                return true;
+            }
+        }
+        return false;
+    }
 }

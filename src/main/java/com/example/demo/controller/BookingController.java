@@ -72,6 +72,7 @@ public class BookingController {
             booking.setEndDate(endDate);
             booking.setGuestsCount(guestsCount);
             booking.setTotalPrice(totalPrice);
+            booking.setStatus(BookingStatus.ACTIVE);
 
             bookingService.save(booking);
 
@@ -126,27 +127,25 @@ public class BookingController {
 
         return ResponseEntity.ok(response);
     }
-
-    @PostMapping("/{id}/cancel")
-    @ResponseStatus(HttpStatus.OK)
-    public void cancelBooking(
-            @PathVariable Long id,
-            @RequestBody(required = false) CancelRequest request,
-            Principal principal) {
-
-        String adminNote = request != null ? request.getAdminNote() : null;
-        bookingService.cancelBooking(id, principal.getName(), adminNote);
+    @PostMapping("/cancel/{bookingId}")
+    public String cancelBooking(@PathVariable Long bookingId, RedirectAttributes redirectAttributes) {
+        boolean canceled = bookingService.cancelBooking(bookingId);
+        if (canceled) {
+            redirectAttributes.addFlashAttribute("success", "Бронирование успешно отменено!");
+        } else {
+            redirectAttributes.addFlashAttribute("error", "Ошибка при отмене бронирования.");
+        }
+        return "redirect:/bookings/history";
     }
 
-    @PostMapping("/{id}/restore")
-    @ResponseStatus(HttpStatus.OK)
-    public void restoreBooking(@PathVariable Long id) {
-        bookingService.restoreBooking(id);
-    }
-
-    // DTO для запроса
-    @Data
-    static class CancelRequest {
-        private String adminNote;
+    @PostMapping("/restore/{bookingId}")
+    public String restoreBooking(@PathVariable Long bookingId, RedirectAttributes redirectAttributes) {
+        boolean restored = bookingService.restoreBooking(bookingId);
+        if (restored) {
+            redirectAttributes.addFlashAttribute("success", "Бронирование успешно восстановлено!");
+        } else {
+            redirectAttributes.addFlashAttribute("error", "Ошибка при восстановлении бронирования.");
+        }
+        return "redirect:/bookings/history";
     }
 }

@@ -40,44 +40,8 @@ public class Booking {
 ;
     private int guestsCount;
 
-    public enum BookingStatus {
-        ACTIVE,    // Активное бронирование
-        CANCELLED, // Отмененное
-        COMPLETED  // Завершенное (после даты выезда)
-    }
-
     @Enumerated(EnumType.STRING)
-    private BookingStatus status = BookingStatus.ACTIVE;
-
-
-//    private String status;
-
-//    @Column(name = "is_in_cart")
-//    private boolean is_in_cart;
-//
-//    @Column(nullable = false)
-//    private String name;
-//
-//    @Column(nullable = false)
-//    private String type;
-//
-//    @Column(nullable = false)
-//    private String location;
-//
-//    @Column(nullable = false)
-//    private float price;
-//
-//    @NotNull(message = "Дата прибытия обязательна")
-//    @FutureOrPresent(message = "Дата прибытия должна быть сегодня или позже")
-//    @Column(name = "start_date")
-//    @DateTimeFormat(pattern = "yyyy-MM-dd")
-//    private LocalDate start_date;
-////
-////    @NotNull(message = "Дата отправки обязательна")
-////    @FutureOrPresent(message = "Дата отправки должна быть сегодня или позже")
-//    @Column(name = "end_date")
-//    @DateTimeFormat(pattern = "yyyy-MM-dd")
-//    private LocalDate end_date;
+    private BookingStatus status;
 
     public Long getId() {
         return id;
@@ -136,91 +100,11 @@ public class Booking {
         this.endDate = endDate;
     }
 
-    public Status getStatus() {
+    public BookingStatus getStatus() {
         return status;
     }
 
-    public void setStatus(Status status) {
+    public void setStatus(BookingStatus status) {
         this.status = status;
     }
-
-    //    public Long getId() {
-//        return id;
-//    }
-//
-//    public void setId(Long id) {
-//        this.id = id;
-//    }
-//
-//    public String getName() {
-//        return name;
-//    }
-//
-//    public void setName(String name) {
-//        this.name = name;
-//    }
-//
-//    public String getLocation() {
-//        return location;
-//    }
-//
-//    public void setLocation(String location) {
-//        this.location = location;
-//    }
-//
-//    public float getPrice() {
-//        return price;
-//    }
-//
-//    public void setPrice(float price) {
-//        this.price = price;
-//    }
-//
-//    public LocalDate getStart_date() {
-//        return start_date;
-//    }
-//
-//    public void setStart_date(LocalDate start_date) {
-//        this.start_date = start_date;
-//    }
-//
-//    public LocalDate getEnd_date() {
-//        return end_date;
-//    }
-//
-//    public void setEnd_date(LocalDate end_date) {
-//        this.end_date = end_date;
-//    }
-//
-//    public String getType() {
-//        return type;
-//    }
-//
-//    public void setType(String type) {
-//        this.type = type;
-//    }
-//
-//    public MyUser getUser() {
-//        return user;
-//    }
-//
-//    public void setUser(MyUser user) {
-//        this.user = user;
-//    }
-//
-//    public String getStatus() {
-//        return status;
-//    }
-//
-//    public void setStatus(String status) {
-//        this.status = status;
-//    }
-//
-//    public boolean isIs_in_cart() {
-//        return is_in_cart;
-//    }
-//
-//    public void setIs_in_cart(boolean is_in_cart) {
-//        this.is_in_cart = is_in_cart;
-//    }
 }

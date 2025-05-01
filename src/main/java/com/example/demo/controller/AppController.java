@@ -29,12 +29,8 @@ public class AppController {
 
     @GetMapping("/")
     public String viewHomePageAdmin(Model model, @Param("keyword") String keyword) {
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
 
         List<Accommodation> accommodation = accommodationService.listAll(keyword);
-
-//        model.addAttribute("accommodation", accommodationRepository.findAll());
 
         model.addAttribute("accommodation", accommodation);
         model.addAttribute("keyword", keyword);
@@ -44,14 +40,13 @@ public class AppController {
 
     @GetMapping("/new")
     public String showAddForm(Model model) {
-//        model.addAttribute("booking", new Booking()); // Создаем новый объект без ID
         model.addAttribute("accommodation", new Accommodation());
         return "new_booking";
     }
 
     @PostMapping("/save")
     public String saveAccommodation(@ModelAttribute("accommodation") Accommodation accommodation) {
-        accommodationService.save(accommodation); // ID будет сгенерирован автоматически
+        accommodationService.save(accommodation);
         return "redirect:/";
     }
 
@@ -62,6 +57,14 @@ public class AppController {
         mav.addObject("accommodation", accommodation);
         return mav;
     }
+//
+//    @DeleteMapping("/accommodation/{id}")
+//    @ResponseBody
+//    public String deleteAccommodation(@PathVariable Long id) {
+//        accommodationService.delete(id);
+//        return "Accommodation with ID " + id + " has been deleted";
+//    }
+
 
     @RequestMapping("/delete/{id}") //для удаления студента
     public String deleteAccommodation(@PathVariable(name="id") Long id){

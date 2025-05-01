@@ -9,8 +9,4 @@ import java.util.List;
 public interface AccommodationRepository extends JpaRepository<Accommodation, Long> {
     @Query("SELECT p FROM Accommodation p WHERE CONCAT(p.name, ' ', p.type, ' ', p.location, ' ', p.capacity, ' ', p.basePrice, ' ', p.description) LIKE %?1%")
     List<Accommodation> search(String keyword);
-
-    List<Accommodation> findByLocationContainingIgnoreCase(String location);
-    List<Accommodation> findByType(String type);
-    List<Accommodation> findByCapacityGreaterThanEqual(int capacity);
 }

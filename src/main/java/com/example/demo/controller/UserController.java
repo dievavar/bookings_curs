@@ -34,7 +34,6 @@ public class UserController {
     @Autowired
     private BookingService bookingService;
 
-    //контроллер по конролю пользоваетелей для администратора
     @RequestMapping
     public String manageUsers(Model model, @Param("myUsers") String myUsers, Principal principal) {
          //Получаем текущего пользователя
@@ -47,38 +46,28 @@ public class UserController {
         return "manage_users.html"; // Имя шаблона Thymeleaf
     }
 
-//    @RequestMapping("/users/new") //контроллер по добавлению пользователя
-//    public String showNewUserForm(Model model){
-//        MyUser user = new MyUser();
-//        model.addAttribute("user", user);
-//        return "redirect:/users";
-//    }
     @PostMapping("/new")
     public String addUser(@RequestParam String username,
                           @RequestParam String email,
                           @RequestParam String password,
                           @RequestParam String role) {
-        // Создаем нового пользователя
         MyUser user = new MyUser();
         user.setUsername(username);
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password)); // Шифруем пароль
         user.setRole(role);
 
-        // Сохраняем пользователя в базу данных
         userService.save(user);
-
-        // Перенаправляем на страницу управления пользователями
         return "redirect:/users";
     }
 
-    @RequestMapping(value = "/users/save", method = RequestMethod.POST)
+    @PostMapping("/save")
     public String saveUser(@ModelAttribute("user") MyUser user) {
         userService.save(user);
         return "redirect:/users";
     }
 
-    @RequestMapping("/delete/{id}") //для удаления пользователей
+    @RequestMapping("/delete/{id}")
     public String deleteUser(@PathVariable(name="id") Long id){
         userService.delete(id);
         return "redirect:/users";
@@ -87,18 +76,6 @@ public class UserController {
     @PostMapping("/updateRole")
     public String updateUserRole(@RequestParam Long id, @RequestParam String role) {
         userService.updateUserRole(id, role); // Обновляем роль пользователя
-        return "redirect:/users"; // Перенаправляем обратно на страницу со списком пользователей
-    }
-
-    @GetMapping("/bookings")
-    public String allBookings(Model model) {
-        model.addAttribute("bookings", bookingService.getAllBookings());
-        return "/users/bookings";
-    }
-
-    @PostMapping("/bookings/{id}/confirm")
-    public String confirmBooking(@PathVariable Long id) {
-        bookingService.confirmBooking(id);
-        return "redirect:/users/bookings";
+        return "redirect:/users";
     }
 }
